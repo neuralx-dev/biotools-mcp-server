@@ -11,12 +11,13 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that p
 - **get_publication_abstract**: Retrieve full abstracts for scientific papers
 - **save_json_list**: Save research data and results to JSON files
 
-### 🛡️ Production Ready
+### 🛡️ Production Ready & Isolated
 
-- Systemd service integration for Ubuntu VPS deployment
-- Automatic startup and restart capabilities
-- Comprehensive logging and monitoring
-- Security hardening and resource limits
+- **Isolated deployment** - Won't interfere with other applications
+- **Enhanced security** - Systemd sandbox with strict resource limits
+- **Automatic startup** - Reliable restart capabilities with health monitoring
+- **Minimal system impact** - Only installs necessary dependencies
+- **Self-contained** - All management scripts in application directory
 
 ## Quick Start
 
@@ -59,12 +60,13 @@ chmod +x deploy.sh
 ./deploy.sh
 ```
 
-The deployment script will:
-- Install Node.js and dependencies
-- Create a dedicated service user
-- Set up systemd service with auto-restart
-- Configure security settings and resource limits
-- Create management scripts
+The **isolated** deployment script will:
+- **Only install missing dependencies** (won't upgrade existing packages)
+- **Check Node.js compatibility** (won't overwrite existing installations)
+- **Create dedicated service user** with minimal privileges
+- **Set up enhanced systemd service** with security sandbox
+- **Configure strict resource limits** (512MB RAM, 4096 processes)
+- **Create isolated management scripts** (no global commands)
 
 ## Usage Examples
 
@@ -120,23 +122,26 @@ The deployment script will:
 
 ## Management Commands (Production)
 
-After deployment, use these commands to manage the service:
+After deployment, use these isolated commands to manage the service:
 
 ```bash
 # Start the service
-biotools-mcp-start
+/opt/biotools-mcp/scripts/start
 
 # Stop the service  
-biotools-mcp-stop
+/opt/biotools-mcp/scripts/stop
 
 # Restart the service
-biotools-mcp-restart
+/opt/biotools-mcp/scripts/restart
 
 # Check service status
-biotools-mcp-status
+/opt/biotools-mcp/scripts/status
 
 # View real-time logs
-biotools-mcp-logs
+/opt/biotools-mcp/scripts/logs
+
+# Update the service (if using git)
+/opt/biotools-mcp/scripts/update
 ```
 
 ## Configuration
@@ -203,23 +208,37 @@ Save data arrays to JSON files on the server.
 
 **Returns:** Confirmation with file path and item count.
 
-## Security Features
+## Isolation & Security Features
 
-The production deployment includes several security measures:
+### 🔒 Application Isolation
 
-- Dedicated service user with minimal privileges
-- Systemd security sandbox (NoNewPrivileges, PrivateTmp, etc.)
-- Resource limits (file descriptors, process count)
-- System call filtering
-- Network access restrictions
+The deployment is designed to **avoid conflicts** with other server applications:
+
+- **No system-wide upgrades** - Only updates package list, doesn't upgrade existing packages
+- **Selective dependency installation** - Only installs missing packages (curl, build-essential)
+- **Node.js compatibility check** - Won't overwrite existing Node.js if version ≥18
+- **Isolated management scripts** - Created in `/opt/biotools-mcp/scripts/` (not global `/usr/local/bin/`)
+- **Local npm cache** - Uses application-specific cache directory
+- **Dedicated service user** - Runs as `biotools` user with no shell access
+
+### 🛡️ Security Hardening
+
+The production deployment includes comprehensive security measures:
+
+- **Systemd security sandbox**: NoNewPrivileges, PrivateTmp, PrivateDevices
+- **File system protection**: Read-only system, isolated /tmp and /dev
+- **Network restrictions**: Only HTTP/HTTPS protocols allowed
+- **Resource limits**: 512MB RAM, 4096 processes, 65536 file descriptors
+- **System call filtering**: Blocks dangerous system calls
+- **Memory protection**: Prevents executable memory allocation
 
 ## Monitoring and Logs
 
 ### Viewing Logs
 
 ```bash
-# Real-time logs
-biotools-mcp-logs
+# Real-time logs (isolated script)
+/opt/biotools-mcp/scripts/logs
 
 # Journal logs with filtering
 sudo journalctl -u biotools-mcp -f --since "1 hour ago"
@@ -231,8 +250,8 @@ sudo journalctl -u biotools-mcp --no-pager
 ### Service Status
 
 ```bash
-# Quick status check
-biotools-mcp-status
+# Quick status check (isolated script)
+/opt/biotools-mcp/scripts/status
 
 # Detailed systemd status
 sudo systemctl status biotools-mcp -l --no-pager
@@ -242,10 +261,11 @@ sudo systemctl status biotools-mcp -l --no-pager
 
 ### Common Issues
 
-1. **Service won't start**: Check logs with `biotools-mcp-logs`
+1. **Service won't start**: Check logs with `/opt/biotools-mcp/scripts/logs`
 2. **Permission errors**: Ensure service user has correct permissions
 3. **Port conflicts**: The server uses stdio transport (no network ports)
 4. **Build failures**: Ensure Node.js 18+ is installed
+5. **Isolation issues**: Service runs in strict sandbox - check `ReadWritePaths` if needed
 
 ### Debug Mode
 
