@@ -266,6 +266,7 @@ sudo systemctl status biotools-mcp -l --no-pager
 3. **Port conflicts**: The server uses stdio transport (no network ports)
 4. **Build failures**: Ensure Node.js 18+ is installed
 5. **Isolation issues**: Service runs in strict sandbox - check `ReadWritePaths` if needed
+6. **npm EACCES errors**: Fixed in latest deploy.sh - creates isolated npm cache with proper permissions
 
 ### Debug Mode
 
@@ -287,6 +288,25 @@ sudo journalctl -u biotools-mcp --since "1 hour ago" --priority err
 
 # Monitor resource usage
 sudo systemctl show biotools-mcp --property=MemoryCurrent,CPUUsageNSec
+```
+
+### npm EACCES Permission Errors
+
+If you encounter npm permission errors during deployment:
+
+**Problem**: npm tries to access `/home/biotools` (which doesn't exist) or lacks permission for cache directories.
+
+**Solution**: The latest `deploy.sh` script fixes this by:
+- Creating isolated npm cache directories: `/opt/biotools-mcp/.npm-cache`
+- Setting `HOME=/opt/biotools-mcp` for the biotools user
+- Configuring npm to use application-local directories
+- Setting proper permissions before running npm commands
+
+**Manual fix** (if needed):
+```bash
+sudo mkdir -p /opt/biotools-mcp/.npm-cache
+sudo mkdir -p /opt/biotools-mcp/.npm-tmp  
+sudo chown -R biotools:biotools /opt/biotools-mcp/.npm-*
 ```
 
 ## Contributing

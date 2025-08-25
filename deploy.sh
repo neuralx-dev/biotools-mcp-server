@@ -131,12 +131,26 @@ sudo chown -R $SERVICE_USER:$SERVICE_USER $APP_DIR
 echo "📦 Installing dependencies (isolated to application directory)..."
 cd $APP_DIR
 
-# Set npm cache to local directory to avoid conflicts
-sudo -u $SERVICE_USER npm config set cache $APP_DIR/.npm-cache
-sudo -u $SERVICE_USER npm install --no-fund --no-audit
+# Create npm cache and logs directories with proper permissions
+echo "   Creating npm cache directory..."
+sudo mkdir -p $APP_DIR/.npm-cache
+sudo mkdir -p $APP_DIR/.npm-cache/_logs
+sudo mkdir -p $APP_DIR/.npm-tmp
+sudo chown -R $SERVICE_USER:$SERVICE_USER $APP_DIR/.npm-cache
+sudo chown -R $SERVICE_USER:$SERVICE_USER $APP_DIR/.npm-tmp
+
+# Set npm configuration for isolated environment
+echo "   Configuring npm for isolated environment..."
+sudo -u $SERVICE_USER bash -c "cd $APP_DIR && npm config set cache $APP_DIR/.npm-cache"
+sudo -u $SERVICE_USER bash -c "cd $APP_DIR && npm config set tmp $APP_DIR/.npm-tmp"
+sudo -u $SERVICE_USER bash -c "cd $APP_DIR && npm config set prefix $APP_DIR/.npm-global"
+
+# Install dependencies with isolated environment
+echo "   Installing npm dependencies..."
+sudo -u $SERVICE_USER bash -c "cd $APP_DIR && HOME=$APP_DIR npm install --no-fund --no-audit --cache $APP_DIR/.npm-cache"
 
 echo "🔨 Building application..."
-sudo -u $SERVICE_USER npm run build
+sudo -u $SERVICE_USER bash -c "cd $APP_DIR && HOME=$APP_DIR npm run build"
 
 # Verify build was successful
 if [ ! -f "$APP_DIR/build/index.js" ]; then
@@ -171,7 +185,10 @@ SyslogIdentifier=$SERVICE_NAME
 
 # Environment isolation
 Environment=NODE_ENV=production
+Environment=HOME=$APP_DIR
 Environment=NPM_CONFIG_CACHE=$APP_DIR/.npm-cache
+Environment=NPM_CONFIG_TMP=$APP_DIR/.npm-tmp
+Environment=NPM_CONFIG_PREFIX=$APP_DIR/.npm-global
 
 # Enhanced security settings for isolation
 NoNewPrivileges=true
@@ -204,8 +221,8 @@ LimitNPROC=4096
 MemoryMax=512M
 TasksMax=1024
 
-# Read/write access only to application directory
-ReadWritePaths=$APP_DIR
+# Read/write access only to application directory and npm cache
+ReadWritePaths=$APP_DIR $APP_DIR/.npm-cache $APP_DIR/.npm-tmp $APP_DIR/.npm-global
 ReadOnlyPaths=/usr/bin/node
 
 [Install]
@@ -287,8 +304,8 @@ sudo cp -r $APP_DIR $APP_DIR.backup.$(date +%Y%m%d_%H%M%S)
 if [ -d "$APP_DIR/.git" ]; then
     cd $APP_DIR
     sudo -u $SERVICE_USER git pull
-    sudo -u $SERVICE_USER npm install --no-fund --no-audit
-    sudo -u $SERVICE_USER npm run build
+    sudo -u $SERVICE_USER bash -c "cd $APP_DIR && HOME=$APP_DIR npm install --no-fund --no-audit --cache $APP_DIR/.npm-cache"
+    sudo -u $SERVICE_USER bash -c "cd $APP_DIR && HOME=$APP_DIR npm run build"
 else
     echo "⚠️  No git repository found. Manual update required."
 fi
