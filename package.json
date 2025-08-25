@@ -1,0 +1,53 @@
+{
+  "name": "biotools-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server providing access to biotools and scientific literature via PubMed",
+  "main": "build/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc && chmod 755 build/index.js",
+    "start": "node build/index.js",
+    "dev": "tsc && node build/index.js",
+    "clean": "rm -rf build",
+    "inspect": "npx @modelcontextprotocol/inspector build/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "biotools",
+    "pubmed",
+    "scientific-literature",
+    "bioinformatics",
+    "research"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/biotools-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/biotools-mcp-server/issues"
+  },
+  "homepage": "https://github.com/your-username/biotools-mcp-server#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.2"
+  },
+  "bin": {
+    "biotools-mcp": "./build/index.js"
+  },
+  "files": [
+    "build",
+    "README.md",
+    "LICENSE"
+  ]
+}

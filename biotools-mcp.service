@@ -1,0 +1,50 @@
+[Unit]
+Description=Biotools MCP Server - Scientific literature and biotools for AI
+Documentation=https://github.com/your-username/biotools-mcp-server
+After=network.target network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=biotools
+Group=biotools
+WorkingDirectory=/opt/biotools-mcp
+ExecStart=/usr/bin/node /opt/biotools-mcp/build/index.js
+ExecReload=/bin/kill -HUP $MAINPID
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=biotools-mcp
+
+# Environment
+Environment=NODE_ENV=production
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/biotools-mcp
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+MemoryDenyWriteExecute=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectProc=invisible
+ProcSubset=pid
+SystemCallFilter=@system-service
+SystemCallFilter=~@debug @mount @cpu-emulation @obsolete @privileged @reboot @swap @raw-io
+SystemCallErrorNumber=EPERM
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target
