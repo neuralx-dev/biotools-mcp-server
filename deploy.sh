@@ -8,11 +8,7 @@ set -e
 echo "🔬 Biotools MCP Server Deployment Script"
 echo "========================================"
 
-# Check if running as root
-if [[ $EUID -eq 0 ]]; then
-   echo "❌ This script should not be run as root. Please run as a regular user with sudo privileges."
-   exit 1
-fi
+
 
 # Variables
 APP_DIR="/opt/biotools-mcp"
